@@ -1,0 +1,47 @@
+<html>
+<head>
+    <title></title>
+    <script>
+    function printLog(msg){
+        var div_logging = document.getElementById("logging");
+        div_logging.innerHTML += "<li/>"
+        div_logging.innerHTML += "Message:";
+        div_logging.innerHTML += msg
+    }
+    xwalk.experimental.messaging.sms.onreceived = function(evt){
+        printLog(JSON.stringify(evt));
+    }
+    function test_send(){
+        var text = "Hello XWalkman"
+        xwalk.experimental.messaging.sms.send ( document.getElementById("phoneNumber").value, document.getElementById("messageText").value).done(
+          function(body) {
+            printLog(JSON.stringify(body));
+        },
+        function(error) {
+            printLog(JSON.stringify(error));
+        } )
+    }
+
+    function test_segmentInfo(){
+        xwalk.experimental.messaging.sms.segmentInfo(document.getElementById("segmentText").value).done(
+          function(body) {
+            printLog(JSON.stringify(body))
+        },
+          function(error) {  printLog(JSON.stringify(error)); } )
+    }
+    </script>
+</head>
+<body>
+    <h1>
+        <a href="#" onclick="test_send()">send</a><br/>
+        phone:<input id="phoneNumber" type="text" value="5556"/><br/>
+        text:<input id="messageText" type="text" value="Hello XWalk man!!"/><br/>
+
+        <a href="#" onclick="test_segmentInfo()">segmentInfo</a><br/>
+        <input id="segmentText" type="text" value="xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx "/><br/>
+    </h1>
+    <h2>
+        <div id="logging"/>
+    </h2>
+</body>
+</html>

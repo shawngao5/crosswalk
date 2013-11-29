@@ -33,22 +33,45 @@ import java.text.ParseException;
 import java.util.Map;
 import java.util.HashMap;
 import android.content.ContentValues;
-import android.util.Log; 
+import android.util.*; 
 
 import org.xwalk.runtime.extension.api.messaging.MessagingSmsManager;
+import org.xwalk.runtime.extension.api.messaging.MessagingManager;
+
+interface Command {
+    void runCommand(JSONObject jsonMsg);
+}
 
 public class Messaging extends XWalkExtension {
     public static final String NAME = "xwalk.experimental.messaging";
     public static final String JS_API_PATH = "jsapi/messaging_api.js";
     private static final String TAG = "Messaging";
+    private static HashMap<String, Command> methodMap = new HashMap<String, Command>();
 
     private MessagingSmsManager smsManager;
+    private MessagingManager messagingManager;
+
+    private void initMethodMap() {
+        try {
+            methodMap.put("msg_smsSend", new Command() {
+                public void runCommand(JSONObject jsonMsg) { smsManager.onSmsSend(jsonMsg); };
+            });
+            methodMap.put("msg_smsSegmentInfo", new Command() {
+                public void runCommand(JSONObject jsonMsg) { smsManager.onSmsSegmentInfo(jsonMsg); };
+            });
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 
     public Messaging(String jsApiContent, XWalkExtensionContext context) {
         super(NAME, jsApiContent, context);
         smsManager = new MessagingSmsManager(mExtensionContext.getActivity(), this);
         smsManager.Init(); //TDOD:(shawn.gao) When onStart and OnStop are ready. This should be moved to onStart.
+        messagingManager = new MessagingManager(mExtensionContext.getActivity(), this);
+
+        initMethodMap();
     }
 
     @Override
@@ -71,12 +94,23 @@ public class Messaging extends XWalkExtension {
                 return;
             }
 
-            if (cmd.equals("msg_smsSend")) {
-                smsManager.onSmsSend(jsonMsg);
+            try {
+                Command command = methodMap.get(cmd);
+                if (null != command) {
+                    command.runCommand(jsonMsg);
+                }
+            } catch(Exception e) {
+              throw new RuntimeException(e);
             }
-            else if (cmd.equals("msg_smsSegmentInfo")) {
-                smsManager.onSmsSegmentInfo(jsonMsg);
-            }
+
+            
+
+            // if (cmd.equals("msg_smsSend")) {
+            //     smsManager.onSmsSend(jsonMsg);
+            // }
+            // else if (cmd.equals("msg_smsSegmentInfo")) {
+            //     smsManager.onSmsSegmentInfo(jsonMsg);
+            // }
         }
     }
 }

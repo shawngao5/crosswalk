@@ -42,41 +42,40 @@ public class Messaging extends XWalkExtension {
     public static final String JS_API_PATH = "jsapi/messaging_api.js";
     private static final String TAG = "Messaging";
 
-    private MessagingSmsManager smsManager;
-
+    private MessagingMmsManager mMmsManager;
+    private MessagingSmsManager mSmsManager;
 
     public Messaging(String jsApiContent, XWalkExtensionContext context) {
         super(NAME, jsApiContent, context);
-        smsManager = new MessagingSmsManager(mExtensionContext.getActivity(), this);
-        smsManager.Init(); //TDOD:(shawn.gao) When onStart and OnStop are ready. This should be moved to onStart.
+        mSmsManager = new MessagingSmsManager(context.getActivity(), this);
+        mSmsManager.Init(); //TDOD:(shawn.gao) When onStart and OnStop are ready. This should be moved to onStart.
+        mMmsManager = new MessagingMmsManager(this, context.getContext());
     }
 
     @Override
     public void onDestroy() {
-        smsManager.Uninit(); //TDOD:(shawn.gao) When onStart and OnStop are ready. This should be moved to onStop.
+        mSmsManager.Uninit(); //TDOD:(shawn.gao) When onStart and OnStop are ready. This should be moved to onStop.
+        mMmsManager.endMmsConnectivity();
     }
 
     @Override
     public void onMessage(int instanceID, String message) {
-        if (!message.isEmpty()) {
-            JSONObject jsonMsg = null;
-            String cmd = null;
+        if (message.isEmpty()) {
+            return;
+        }
 
-            try {
-                jsonMsg  = new JSONObject(message);
-                cmd = jsonMsg.getString("cmd");
-                
-            } catch (JSONException e) {
-                Log.e(TAG, e.toString());
-                return;
-            }
-
+        try {
+            JSONObject jsonMsg  = new JSONObject(message);
+            String cmd = jsonMsg.getString("cmd");
             if (cmd.equals("msg_smsSend")) {
-                smsManager.onSmsSend(jsonMsg);
+                mSmsManager.onSmsSend(jsonMsg);
+            } else if (cmd.equals("msg_smsSegmentInfo")) {
+                mSmsManager.onSmsSegmentInfo(jsonMsg);
+            } else if (cmd.equals("msg_mmsSend")) {
+                mMmsManager.sendMms(jsonMsg);
             }
-            else if (cmd.equals("msg_smsSegmentInfo")) {
-                smsManager.onSmsSegmentInfo(jsonMsg);
-            }
+        } catch (JSONException e) {
+            Log.e(TAG, e.toString());
         }
     }
 }

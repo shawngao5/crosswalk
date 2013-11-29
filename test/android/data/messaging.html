@@ -1,47 +1,143 @@
 <html>
-<head>
+  <head>
     <title></title>
-    <script>
-    function printLog(msg){
-        var div_logging = document.getElementById("logging");
-        div_logging.innerHTML += "<li/>"
-        div_logging.innerHTML += "Message:";
-        div_logging.innerHTML += msg
+  </head>
+  <style type="text/css">
+    body { margin: auto; width: 100%; }
+    div { margin: 15; padding: 10; width: 100%; }
+    textarea { margin: 10; padding: 10; width: 95%; height: 15%; font-size: 12; resize: none; }
+    .button { margin: 10; padding: 10; width: 80%; height: 5%; font-size: 40; }
+    .title { margin: 20; padding: 10; font-size: 42; font-weight: bold; }
+    .subtitle { margin: 10; padding: 10; font-size: 35; }
+    .input { font-size: 32; }
+    .text { font-size: 32; }
+    .center { text-align: center; }
+    .border { margin: 10; padding: 10; width: 95%; border: 1px solid rgb(151, 193, 218); }
+    .log { font-size: 25; }
+    .sms { background-color: #FFFACD; }
+    .mms { background-color: #CAE1FF; }
+    .event { background-color: #D1D1D1; }
+  </style>
+  <body>
+  <script>
+  window.onload = function() {
+    function attachment(init) {
+      this.contentLocation = init.contentLocation;
     }
-    xwalk.experimental.messaging.sms.onreceived = function(evt){
-        printLog(JSON.stringify(evt));
+
+    function mmsContent(init) {
+      this.subject = init.subject;
+      this.to = init.to;
+      this.cc = init.cc;
+      this.bcc = init.bcc;
+      this.smil = init.smil;
+      this.attachments = init.attachments;
     }
-    function test_send(){
-        var text = "Hello XWalkman"
-        xwalk.experimental.messaging.sms.send ( document.getElementById("phoneNumber").value, document.getElementById("messageText").value).done(
-          function(body) {
-            printLog(JSON.stringify(body));
+
+    function printSmsLog(msg) {
+      var div_logging = document.getElementById('sms_logging');
+      div_logging.innerHTML += 'Message: ';
+      div_logging.innerHTML += msg + '\n';
+    }
+
+    function printMmsLog(msg) {
+      var div_logging = document.getElementById('mms_logging');
+      div_logging.innerHTML += 'Message: ';
+      div_logging.innerHTML += msg + '\n';
+    }
+
+    function test_sms_send() {
+      var text = 'Hello XWalkman';
+      var phoneNumber = document.getElementById('phoneNumber').value;
+      var messageText = document.getElementById('messageText').value;
+      xwalk.experimental.messaging.sms.send(phoneNumber, messageText).then(
+        function(body) {
+          printSmsLog(JSON.stringify(body));
         },
         function(error) {
-            printLog(JSON.stringify(error));
-        } )
+          printSmsLog(JSON.stringify(error));
+        });
     }
 
-    function test_segmentInfo(){
-        xwalk.experimental.messaging.sms.segmentInfo(document.getElementById("segmentText").value).done(
-          function(body) {
-            printLog(JSON.stringify(body))
+    function test_sms_segmentInfo() {
+      var segmentText = document.getElementById('segmentText').value;
+      xwalk.experimental.messaging.sms.segmentInfo(segmentText).then(
+        function(body) {
+          printSmsLog(JSON.stringify(body));
         },
-          function(error) {  printLog(JSON.stringify(error)); } )
+        function(error) {
+          printSmsLog(JSON.stringify(error));
+        });
     }
-    </script>
-</head>
-<body>
-    <h1>
-        <a href="#" onclick="test_send()">send</a><br/>
-        phone:<input id="phoneNumber" type="text" value="5556"/><br/>
-        text:<input id="messageText" type="text" value="Hello XWalk man!!"/><br/>
 
-        <a href="#" onclick="test_segmentInfo()">segmentInfo</a><br/>
-        <input id="segmentText" type="text" value="xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx "/><br/>
-    </h1>
-    <h2>
-        <div id="logging"/>
-    </h2>
-</body>
+    var attachment_unit = new attachment({
+      contentLocation: document.getElementById('mms_attachment').value
+      });
+    var mms_content = new mmsContent({
+      subject: document.getElementById('mms_subject').value,
+      to: document.getElementById('mms_to').value,
+      cc: document.getElementById('mms_cc').value,
+      bcc: document.getElementById('mms_bcc').value,
+      smil: document.getElementById('mms_smil').value,
+      attachments: [attachment_unit]
+      });
+
+    function test_mms_send() {
+      xwalk.experimental.messaging.mms.send(mms_content).then(
+        function(body) {
+          printMmsLog(JSON.stringify(body));
+        },
+        function(error) {
+          printMmsLog(JSON.stringify(error));
+        });
+    }
+
+    xwalk.experimental.messaging.sms.onreceived = function(evt) {
+      printSmsLog(JSON.stringify(evt));
+    };
+    document.getElementById('sms_send').onclick = function() {
+      test_sms_send();
+    }
+    document.getElementById('sms_segmentInfo').onclick = function() {
+      test_sms_segmentInfo();
+    }
+    document.getElementById('mms_send').onclick = function() {
+      test_mms_send();
+    }
+  };
+  </script>
+  <div class="title center">SysApp EXAMPLE -- Messaging</div>
+  <div class="sms">
+    <p class="subtitle center">SMS Manager</p>
+    <div class="border">
+      <p class="text"><button class="button" id="sms_send">Test send button</button></p>
+      <p class="text">phone:<input class="input" id="phoneNumber" type="text" value="5556"/></p>
+      <p class="text">text:<input class="input" id="messageText" type="text" value="Hello XWalk man!!"/></p>
+    </div>
+    <div class="border">
+      <p class="text"><button class="button" id="sms_segmentInfo">Test segmentInfo button</button></p>
+      <p class="text"><input class="input" id="segmentText" type="text" value="xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx "/></p>
+    </div>
+    <div class="border">
+      <p class="text">SMS log:</p>
+      <textarea id="sms_logging" readonly=true></textarea>
+    </div>
+  </div>
+  <div class="mms">
+    <p class="subtitle center">MMS Manager</p>
+    <div class="border">
+      <p class="text"><button class="button" id="mms_send">Test send button</button></p>
+      <p class="text">subject:<input class="input" id="mms_subject" type="text" value="Test Xwalk MMS"/></p>
+      <p class="text">to:<input class="input" id="mms_to" type="text" value="15800038819;"/></p>
+      <p class="text">cc:<input class="input" id="mms_cc" type="text" value="15800038819;"/></p>
+      <p class="text">bcc:<input class="input" id="mms_bcc" type="text" value="15800038819;"/></p>
+      <p class="text">smil:<input class="input" id="mms_smil" type="text" value="Hello XWalk!!!"/></p>
+      <p class="text">attachment:<input class="input" id="mms_attachment" type="text" value="file:///sdcard/test_mms.jpg"/></p>
+    </div>
+    <div class="border">
+      <p class="text">MMS log:</p>
+      <textarea id="mms_logging" readonly=true></textarea>
+    </div>
+  </div>
+  </body>
 </html>

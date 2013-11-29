@@ -14,46 +14,46 @@ var _listeners = {};
 var _next_listener_id = 0;
 
 function Promise() {
-  this._dones = [];
+  this._thens = [];
 }
 
 Promise.prototype = {
-  done: function(onFulfilled, onRejected) {
-    this._dones.push({fulfill: onFulfilled, reject: onRejected});
+  then: function(onFulfilled, onRejected) {
+    this._thens.push({fulfill: onFulfilled, reject: onRejected});
     return this;
   },
   fulfill: function(value) {
-    this._finish('fulfill', value);
+    this._done('fulfill', value);
   },
   reject: function(error) {
-    this._finish('reject', error);
+    this._done('reject', error);
   },
-  _finish: function(which, arg) {
-    // Cover and sync func `done()`.
-    this.done = which === 'fulfill' ?
+  _done: function(which, arg) {
+    // Cover and sync func `then()`.
+    this.then = which === 'fulfill' ?
       function(fulfill, reject) {fulfill && fulfill(arg); return this;} :
       function(fulfill, reject) {reject && reject(arg); return this;};
     // Disallow multiple calls.
     this.fulfill = this.reject =
       function() {throw new Error('Promise already completed.');}
-    // Complete all async `done()`s.
-    var done, i = 0;
-    while (done = this._dones[i++]) {
-      done[which] && done[which](arg);
+    // Complete all async `then()`s.
+    var then, i = 0;
+    while (then = this._thens[i++]) {
+      then[which] && then[which](arg);
     }
-    delete this._dones;
+    delete this._thens;
   }
 };
 
 var postMessage = function(msg) {
-  var p = new Promise();
+  var promise = new Promise();
 
-  _promises[_next_promise_id] = p;
+  _promises[_next_promise_id] = promise;
   msg._promise_id = _next_promise_id.toString();
   _next_promise_id += 1;
 
   extension.postMessage(JSON.stringify(msg));
-  return p;
+  return promise;
 };
 
 function _addConstProperty(obj, propertyKey, propertyValue) {
@@ -121,6 +121,27 @@ SmsManager.prototype.segmentInfo = function(text, serviceId){
 var sms = new SmsManager();
 exports.sms = sms;
 
+function MmsManager() {
+}
+
+MmsManager.prototype.send = function(mmsContent) {
+  var _msg = {
+    cmd: "msg_mmsSend",
+    data: {
+      mmsContent: mmsContent,
+    }
+  }  
+  return postMessage(_msg);
+};
+
+MmsManager.prototype.fetch = function() {
+};
+
+MmsManager.prototype.clear = function() {
+};
+
+var mms = new MmsManager();
+exports.mms = mms;
 
 /*
 handleSmsDelivery
@@ -166,7 +187,7 @@ handlePromise
 
 function handlePromise(msgObj){
   if (msgObj.data.error) {
-    _promises[msgObj._promise_id].reject(msgObj.data.body);
+    _promises[msgObj._promise_id].reject(msgObj.data.error);
   } else {
     _promises[msgObj._promise_id].fulfill(msgObj.data.body);
   }
@@ -182,7 +203,7 @@ extension.setMessageListener(function(json) {
       handleSmsDelivery(_msg);
       break;
     }
-    case "msg_smsReceived":{
+    case "msg_smsReceived": {
       handleReceived(_msg);
       break;
     }
@@ -193,7 +214,8 @@ extension.setMessageListener(function(json) {
     case "msg_deleteMessage_ret":
     case "msg_deleteConversation_ret":
     case "msg_markMessageRead_ret":
-    case "msg_markConversationRead_ret":{
+    case "msg_markConversationRead_ret":
+    case "msg_mmsSend_ret": {
       handlePromise(_msg);
       break;
     }

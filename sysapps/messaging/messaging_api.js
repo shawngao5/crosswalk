@@ -86,12 +86,11 @@ function _createConstClone(obj) {
 }
 
 function _isFunction( fn ) {
-  return !!fn && !fn.nodeName && fn.constructor != String && fn.constructor != RegExp && fn.constructor != Array && /function/i.test( fn + "" );
+  return !!fn && !fn.nodeName && fn.constructor != String
+    && fn.constructor != RegExp && fn.constructor != Array
+    && /function/i.test( fn + "" );
 }
 
-/*
-SmsManager
-  */
 function SmsManager(){
 }
 
@@ -121,21 +120,16 @@ SmsManager.prototype.segmentInfo = function(text, serviceId){
 var sms = new SmsManager();
 exports.sms = sms;
 
-
-/*
-handleSmsDelivery
- */
 function handleReceived(msgObj){
   switch(msgObj.data.message.type) {
     case "sms": {
         if (_isFunction(sms.onreceived)) {
           sms.onreceived(msgObj.data)
         }
-        else{
-        }
       }
       break;
     case "mms": {
+        //FIXME:(shawn) waiting for mms ready
       }
       break;
     default:
@@ -144,25 +138,77 @@ function handleReceived(msgObj){
   }
 }
 
-/*
-handleReceived
- */
 function handleSmsDelivery(msgObj){
   if (!msgObj.data.error) {
     if (_isFunction(sms.ondeliverysuccess)) {
       sms.ondeliverysuccess(msgObj.data.event);
     }
-  }
-  else {
+  } else {
     if (_isFunction(sms.ondeliveryerror)) {
       sms.ondeliveryerror(msgObj.data.event);
     }
   }
-}  
+}
 
-/*
-handlePromise
- */
+function MessagingCursor(element){
+  this.messageIndex = 0;
+  this.element = element;
+}
+
+MessagingCursor.prototype.next = function(){
+  var ret = null
+  if (this.messageIndex>this.element.length) { 
+    this.messageIndex = this.element.length;
+    ret = null;
+  } else {
+    if (this.element) {
+      ret = this.element[this.messageIndex];
+      this.messageIndex++;
+    };
+  }
+  return ret;
+}
+
+MessagingCursor.prototype.previous = function(){
+  var ret = null
+  if (this.messageIndex<0) { 
+    this.messageIndex = 0;
+    ret = null;
+  } else {
+    if (this.element) {
+      ret = this.element[this.messageIndex];
+      this.messageIndex--;
+    };
+  }
+  return ret;
+}
+
+function handleSent(msgObj){
+  if (msgObj.data.error) {
+    _promises[msgObj._promise_id].reject(msgObj.data.body);
+  } else {
+    if (_isFunction(sms.onsent)) {
+      var event = {
+        message: msgObj.data.body,
+      }
+      sms.onsent(event);
+    }
+    _promises[msgObj._promise_id].fulfill(msgObj.data.body);
+  }
+
+  delete _promises[msgObj._promise_id];
+}
+
+function handleFindMessages(msgObj){
+  if (msgObj.data.error) {
+    _promises[msgObj._promise_id].reject(msgObj.data.body);
+  } else {
+    var cursor = new MessagingCursor(msgObj.data.body.results);
+    _promises[msgObj._promise_id].fulfill(cursor);
+  }
+
+  delete _promises[msgObj._promise_id];
+}
 
 function handlePromise(msgObj){
   if (msgObj.data.error) {
@@ -186,9 +232,15 @@ extension.setMessageListener(function(json) {
       handleReceived(_msg);
       break;
     }
-    case "msg_smsSend_ret":
+    case "msg_findMessages_ret":{
+      handleFindMessages(_msg);
+      break;
+    }
+    case "msg_smsSend_ret":{
+      handleSent(_msg);
+      break;
+    }
     case "msg_smsSegmentInfo_ret":
-    case "msg_findMessages_ret":
     case "msg_getMessage_ret":
     case "msg_deleteMessage_ret":
     case "msg_deleteConversation_ret":
@@ -201,3 +253,73 @@ extension.setMessageListener(function(json) {
       break;
   }
 });
+
+exports.findMessages = function(filter, options){
+  var _msg = {
+    cmd: "msg_findMessages",
+    data: {
+      filter: filter,
+      options: options
+    }
+  }
+  return postMessage(_msg);
+}
+
+exports.getMessage = function(type, messageID){
+  var _msg = {
+    cmd: "msg_getMessage",
+    data: {
+      type: type,
+      messageID: messageID
+    }
+  }
+  return postMessage(_msg);
+}
+
+exports.deleteMessage = function(type, messageID){
+    var _msg = {
+    cmd: "msg_deleteMessage",
+    data: {
+      type: type,
+      messageID: messageID
+    }
+  }
+  return postMessage(_msg);
+}
+
+exports.deleteConversation = function(type, conversationID){
+    var _msg = {
+    cmd: "msg_deleteConversation",
+    data: {
+      type: type,
+      conversationID: conversationID
+    }
+  }
+  return postMessage(_msg);
+}
+
+exports.markMessageRead = function(type, messageID, value){
+  value = arguments[2] != undefined ? arguments[2] : true;
+  var _msg = {
+    cmd: "msg_markMessageRead",
+    data: {
+      type: type,
+      messageID: messageID,
+      value: value
+    }
+  }
+  return postMessage(_msg);
+}
+
+exports.markConversationRead = function(type, conversationID, value){
+  value = arguments[2] != undefined ? arguments[2] : true;
+  var _msg = {
+    cmd: "msg_markConversationRead",
+    data: {
+      type: type,
+      conversationID: conversationID,
+      value: value
+    }
+  }
+  return postMessage(_msg);
+}

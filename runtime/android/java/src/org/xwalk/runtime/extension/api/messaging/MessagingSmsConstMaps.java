@@ -8,12 +8,18 @@ import java.util.HashMap;
 import org.xwalk.runtime.extension.api.messaging.MessagingSmsConsts;
 
 public class MessagingSmsConstMaps {
-    final public static HashMap<String, String> smsTableColumnDict = new HashMap<String, String>();
-    final public static HashMap<String, Integer> smsDeliveryStatusDictS2I = new HashMap<String, Integer>();
-    final public static HashMap<Integer, String> smsDiliveryStatusDictI2S = new HashMap<Integer, String>();
-    final public static HashMap<Integer, String> smsStateDictI2S = new HashMap<Integer, String>();
-    final public static HashMap<String, Integer> smsStateDictS2I = new HashMap<String, Integer>();
-    final public static HashMap<String, String> sortOrderDict = new HashMap<String, String>();
+    final public static HashMap<String, String> smsTableColumnDict = 
+        new HashMap<String, String>();
+    final public static HashMap<String, Integer> smsDeliveryStatusDictS2I = 
+        new HashMap<String, Integer>();
+    final public static HashMap<Integer, String> smsDiliveryStatusDictI2S = 
+        new HashMap<Integer, String>();
+    final public static HashMap<Integer, String> smsStateDictI2S = 
+        new HashMap<Integer, String>();
+    final public static HashMap<String, Integer> smsStateDictS2I = 
+        new HashMap<String, Integer>();
+    final public static HashMap<String, String> sortOrderDict = 
+        new HashMap<String, String>();
 
     static {
         smsTableColumnDict.put("id", MessagingSmsConsts.ID);

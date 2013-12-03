@@ -6,6 +6,7 @@ package org.xwalk.runtime.extension.api.messaging;
 
 import android.database.Cursor;
 import java.util.Date;
+import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import org.json.JSONArray;
@@ -34,9 +35,10 @@ public class MessagingHelpers {
         return "";
     }
 
-    public static String buildSqlFilterString(JSONObject filter){
+    public static Object[] buildSqlFilterString(JSONObject filter){
         String filterString = "";
-
+        String[] filterArgs = null;
+        ArrayList<String> argsStringList = new ArrayList<String>();
         String startDate = null;
         String endDate = null;
         try {
@@ -50,30 +52,29 @@ public class MessagingHelpers {
                 if (hasAnd) {
                     filterString += " AND ";
                 }
-                filterString += String.format("%s >= %d",
-                    MessagingSmsConsts.DATE, convertDateString2Long(
-                        filter.getString("startDate").replace('T', ' ').replace('Z', ' ')
-                        )
-                    );
+                filterString += String.format("%s >= ?",
+                    MessagingSmsConsts.DATE);
+                argsStringList.add(String.valueOf(convertDateString2Long(
+                        filter.getString("startDate").replace('T', ' ').replace('Z', ' '))));
                 hasAnd = true;
             }
             if (filter.has("endDate")) {
                  if (hasAnd) {
                     filterString += " AND ";
                 }
-                filterString += String.format("%s <= %d",
-                    MessagingSmsConsts.DATE, convertDateString2Long(
-                        filter.getString("endDate").replace('T', ' ').replace('Z', ' ')
-                        )
-                    );
+                filterString += String.format("%s <= ?",
+                    MessagingSmsConsts.DATE);
+                argsStringList.add(String.valueOf(convertDateString2Long(
+                        filter.getString("endDate").replace('T', ' ').replace('Z', ' '))));
                 hasAnd = true;
             }
             if (filter.has("from")) {
                  if (hasAnd) {
                     filterString += " AND ";
                 }
-                filterString += String.format("%s = '%s'",
-                    MessagingSmsConsts.ADDRESS,  filter.getString("from"));
+                filterString += String.format("%s = ?'",
+                    MessagingSmsConsts.ADDRESS);
+                argsStringList.add(filter.getString("from"));
                 hasAnd = true;
             }
 
@@ -83,8 +84,9 @@ public class MessagingHelpers {
                 }
 
                 Integer stateNum = new Integer(MessagingSmsConstMaps.smsStateDictS2I.get(filter.getString("state")));
-                filterString += String.format("%s = %d",
-                    MessagingSmsConsts.TYPE,  stateNum);
+                filterString += String.format("%s = ?",
+                    MessagingSmsConsts.TYPE);
+                argsStringList.add(String.valueOf(stateNum));
                 hasAnd = true;
             }
 
@@ -92,17 +94,20 @@ public class MessagingHelpers {
                  if (hasAnd) {
                     filterString += " AND ";
                 }
-                filterString += String.format("%s = %d",
-                    MessagingSmsConsts.READ,  filter.getBoolean("read")?1:0);
+                filterString += String.format("%s = ?",
+                    MessagingSmsConsts.READ);
+                argsStringList.add(filter.getBoolean("read")?"1":"0");
                 hasAnd = true;
             }
+            filterArgs = new String[argsStringList.size()];
+            filterArgs = argsStringList.toArray(filterArgs);
 
         } catch (JSONException e) {
             e.printStackTrace();
-            return "";
+            return null;
         }
 
-        return filterString;
+        return new Object[]{filterString, filterArgs};
     }
 
     public static String buildSqlFilterOptionString(JSONObject filterOption){
@@ -137,6 +142,7 @@ public class MessagingHelpers {
         try {
             jsonMsg = new JSONObject();
             jsonMsg.put("messageID", cursor.getString(cursor.getColumnIndex(MessagingSmsConsts.ID)));
+            jsonMsg.put("conversationID", cursor.getString(cursor.getColumnIndex(MessagingSmsConsts.THREAD_ID)));
             jsonMsg.put("type", "sms");
             jsonMsg.put("serviceID", "");
             jsonMsg.put("from", cursor.getString(cursor.getColumnIndex(MessagingSmsConsts.ADDRESS)));

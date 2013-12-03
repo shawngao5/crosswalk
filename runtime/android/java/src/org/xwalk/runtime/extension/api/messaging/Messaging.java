@@ -59,6 +59,24 @@ public class Messaging extends XWalkExtension {
             methodMap.put("msg_smsSegmentInfo", new Command() {
                 public void runCommand(JSONObject jsonMsg) { smsManager.onSmsSegmentInfo(jsonMsg); };
             });
+            methodMap.put("msg_findMessages", new Command() {
+                public void runCommand(JSONObject jsonMsg) { messagingManager.onMsgFindMessages(jsonMsg); };
+            });
+            methodMap.put("msg_getMessage", new Command() {
+                public void runCommand(JSONObject jsonMsg) { messagingManager.onMsgGetMessage(jsonMsg); };
+            });
+            methodMap.put("msg_deleteMessage", new Command() {
+                public void runCommand(JSONObject jsonMsg) { messagingManager.onMsgDeleteMessage(jsonMsg); };
+            });
+            methodMap.put("msg_deleteConversation", new Command() {
+                public void runCommand(JSONObject jsonMsg) { messagingManager.onMsgDeleteConversation(jsonMsg); };
+            });
+            methodMap.put("msg_markMessageRead", new Command() {
+                public void runCommand(JSONObject jsonMsg) { messagingManager.onMsgMarkMessageRead(jsonMsg); };
+            });
+            methodMap.put("msg_markConversationRead", new Command() {
+                public void runCommand(JSONObject jsonMsg) { messagingManager.onMsgMarkConversationRead(jsonMsg); };
+            });
         } catch(Exception e) {
             throw new RuntimeException(e);
         }
@@ -83,11 +101,11 @@ public class Messaging extends XWalkExtension {
     public void onMessage(int instanceID, String message) {
         if (!message.isEmpty()) {
             JSONObject jsonMsg = null;
-            String cmd = null;
+            String commandString = null;
 
             try {
                 jsonMsg  = new JSONObject(message);
-                cmd = jsonMsg.getString("cmd");
+                commandString = jsonMsg.getString("cmd");
                 
             } catch (JSONException e) {
                 Log.e(TAG, e.toString());
@@ -95,7 +113,7 @@ public class Messaging extends XWalkExtension {
             }
 
             try {
-                Command command = methodMap.get(cmd);
+                Command command = methodMap.get(commandString);
                 if (null != command) {
                     command.runCommand(jsonMsg);
                 }

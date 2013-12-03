@@ -29,6 +29,94 @@
         },
           function(error) {  printLog(JSON.stringify(error)); } )
     }
+
+    function test_findMessages(){
+        var filter = {
+            type: "sms",
+            //startDate: new Date("2013-11-27 00:00:00 GMT+8"),
+            //startDate: new Date(),
+            //endDate: new Date("2013-10-24 23:59:59 GMT+8"),
+            //endDate: new Date(),
+            //from: "23123123",
+            //recipients: "",
+            //state: "received",
+            //serviceID: "",
+            //read: true
+        }
+
+        var filterOption = {
+            sortBy: "date",
+            sortOrder: "descending",
+            limit: 100
+        }
+        xwalk.experimental.messaging.findMessages(filter, filterOption).done(
+          function(body) {
+            printLog(JSON.stringify(body));
+            var cursor = body;
+            printLog(JSON.stringify(cursor.previous()));
+            printLog(JSON.stringify(cursor.previous()));
+        },
+        function(error) {
+            console.error('Error: ' + error);
+        }
+        );
+    }
+
+    function test_getMessage(){
+        xwalk.experimental.messaging.getMessage("sms", document.getElementById("getMessageID").value).done(
+          function(body) {
+            printLog(JSON.stringify(body));
+        },
+        function(error) {
+            console.error('Error: ' + error);
+        }
+        );
+    }
+
+    function test_deleteMessage(){
+
+        xwalk.experimental.messaging.deleteMessage("sms", document.getElementById("deleteMessageID").value).done(
+          function(body) {
+            printLog(JSON.stringify(body));
+        },
+        function(error) {
+            console.error('Error: ' + error);
+        }
+        );
+    }
+
+    function test_deleteConversation(){
+        xwalk.experimental.messaging.deleteConversation("sms", document.getElementById("deleteConversationID").value).done(
+          function(body) {
+            printLog(JSON.stringify(body));
+        },
+        function(error) {
+            console.error('Error: ' + error);
+        }
+        );
+    }
+
+    function test_markMessageRead(){
+        xwalk.experimental.messaging.markMessageRead("sms", document.getElementById("markMessageReadID").value, false).done(
+          function(body) {
+            printLog(JSON.stringify(body));
+        },
+        function(error) {
+            console.error('Error: ' + error);
+        }
+        );
+    }
+
+    function test_markConversationRead(){
+        xwalk.experimental.messaging.markConversationRead("sms", document.getElementById("markConversationReadID").value, false).done(
+          function(body) {
+            printLog(JSON.stringify(body));
+        },
+        function(error) {
+            console.error('Error: ' + error);
+        }
+        );
+    }
     </script>
 </head>
 <body>
@@ -39,6 +127,16 @@
 
         <a href="#" onclick="test_segmentInfo()">segmentInfo</a><br/>
         <input id="segmentText" type="text" value="xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx "/><br/>
+        <a href="#" onclick="test_findMessages()">findMessages</a><br/>
+        <a href="#" onclick="test_getMessage()">getMessage</a><input id="getMessageID" type="text"/><br/>
+        <a href="#" onclick="test_deleteMessage()">deleteMessage</a><br/>
+        <input id="deleteMessageID" type="text"/><br/>
+        <a href="#" onclick="test_deleteConversation()">deleteConversation</a><br/>
+        <input id="deleteConversationID" type="text"/><br/>
+        <a href="#" onclick="test_markMessageRead()">markMessageRead</a><br/>
+        <input id="markMessageReadID" type="text"/><br/>
+        <a href="#" onclick="test_markConversationRead()">markConversationRead</a><br/>
+        <input id="markConversationReadID" type="text"/><br/>
     </h1>
     <h2>
         <div id="logging"/>

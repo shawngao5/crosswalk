@@ -8,9 +8,10 @@
 
 #include "base/file_util.h"
 #include "base/memory/scoped_ptr.h"
+#include "xwalk/application/browser/application_event_manager.h"
 #include "xwalk/application/browser/application_process_manager.h"
 #include "xwalk/application/browser/application_system.h"
-#include "xwalk/application/browser/installer/xpk_extractor.h"
+#include "xwalk/application/browser/installer/package.h"
 #include "xwalk/application/common/application_file_util.h"
 #include "xwalk/runtime/browser/runtime_context.h"
 
@@ -81,12 +82,12 @@ bool ApplicationService::Install(const base::FilePath& path, std::string* id) {
   base::FilePath unpacked_dir;
   std::string app_id;
   if (!base::DirectoryExists(path)) {
-    scoped_refptr<XPKExtractor> extractor = XPKExtractor::Create(path);
-    if (extractor)
-      app_id = extractor->GetPackageID();
+    scoped_ptr<Package> package = Package::Create(path);
+    if (package)
+      app_id = package->Id();
 
     if (app_id.empty()) {
-      LOG(ERROR) << "XPK file is invalid.";
+      LOG(ERROR) << "XPK/WGT file is invalid.";
       return false;
     }
 
@@ -97,7 +98,7 @@ bool ApplicationService::Install(const base::FilePath& path, std::string* id) {
     }
 
     base::FilePath temp_dir;
-    extractor->Extract(&temp_dir);
+    package->Extract(&temp_dir);
     unpacked_dir = data_dir.AppendASCII(app_id);
     if (base::DirectoryExists(unpacked_dir) &&
         !base::DeleteFile(unpacked_dir, true))
@@ -109,7 +110,7 @@ bool ApplicationService::Install(const base::FilePath& path, std::string* id) {
   }
 
   std::string error;
-  scoped_refptr<Application> application =
+  scoped_refptr<ApplicationData> application =
       LoadApplication(unpacked_dir,
                       app_id,
                       Manifest::COMMAND_LINE,
@@ -134,6 +135,10 @@ bool ApplicationService::Install(const base::FilePath& path, std::string* id) {
   LOG(INFO) << "Installed application with id: " << application->ID()
             << " successfully.";
   *id = application->ID();
+
+  FOR_EACH_OBSERVER(Observer, observers_,
+                    OnApplicationInstalled(application->ID()));
+
   return true;
 }
 
@@ -157,20 +162,20 @@ bool ApplicationService::Uninstall(const std::string& id) {
                << id << "; Cannot remove all resources.";
     return false;
   }
+
+  FOR_EACH_OBSERVER(Observer, observers_, OnApplicationUninstalled(id));
+
   return true;
 }
 
 bool ApplicationService::Launch(const std::string& id) {
-  scoped_refptr<const Application> application = GetApplicationByID(id);
+  scoped_refptr<const ApplicationData> application = GetApplicationByID(id);
   if (!application) {
     LOG(ERROR) << "Application with id " << id << " haven't installed.";
     return false;
   }
 
-  application_ = application;
-  return runtime_context_->GetApplicationSystem()->
-      process_manager()->LaunchApplication(runtime_context_,
-                                           application.get());
+  return Launch(application);
 }
 
 bool ApplicationService::Launch(const base::FilePath& path) {
@@ -178,7 +183,7 @@ bool ApplicationService::Launch(const base::FilePath& path) {
     return false;
 
   std::string error;
-  scoped_refptr<const Application> application =
+  scoped_refptr<const ApplicationData> application =
       LoadApplication(path, Manifest::COMMAND_LINE, &error);
 
   if (!application) {
@@ -186,10 +191,7 @@ bool ApplicationService::Launch(const base::FilePath& path) {
     return false;
   }
 
-  application_ = application;
-  return runtime_context_->GetApplicationSystem()->
-      process_manager()->LaunchApplication(runtime_context_,
-                                           application.get());
+  return Launch(application);
 }
 
 ApplicationStore::ApplicationMap*
@@ -197,13 +199,33 @@ ApplicationService::GetInstalledApplications() const {
   return app_store_->GetInstalledApplications();
 }
 
-scoped_refptr<const Application> ApplicationService::GetApplicationByID(
+scoped_refptr<const ApplicationData> ApplicationService::GetApplicationByID(
     const std::string& id) const {
   return app_store_->GetApplicationByID(id);
 }
 
-const Application* ApplicationService::GetRunningApplication() const {
+const ApplicationData* ApplicationService::GetRunningApplication() const {
   return application_.get();
+}
+
+void ApplicationService::AddObserver(Observer* observer) {
+  observers_.AddObserver(observer);
+};
+
+void ApplicationService::RemoveObserver(Observer* observer) {
+  observers_.RemoveObserver(observer);
+};
+
+bool ApplicationService::Launch(
+    scoped_refptr<const ApplicationData> application) {
+  application_ = application;
+  ApplicationSystem* system = runtime_context_->GetApplicationSystem();
+  ApplicationEventManager* event_manager = system->event_manager();
+  event_manager->OnAppLoaded(application->ID());
+
+  return system->process_manager()->LaunchApplication(
+      runtime_context_,
+      application);
 }
 
 }  // namespace application

@@ -25,7 +25,7 @@
 #if defined(OS_ANDROID)
 #include "base/android/path_utils.h"
 #include "base/base_paths_android.h"
-#include "xwalk/runtime/browser/runtime_resource_dispatcher_host_delegate.h"
+#include "xwalk/runtime/browser/runtime_resource_dispatcher_host_delegate_android.h"
 #include "xwalk/runtime/browser/xwalk_browser_main_parts_android.h"
 #include "xwalk/runtime/common/android/xwalk_globals_android.h"
 #endif
@@ -103,9 +103,8 @@ XWalkContentBrowserClient::CreateRequestContextForStoragePartition(
 void XWalkContentBrowserClient::AppendExtraCommandLineSwitches(
     CommandLine* command_line, int child_process_id) {
   CommandLine* browser_process_cmd_line = CommandLine::ForCurrentProcess();
-  const int extra_switches_count = 2;
+  const int extra_switches_count = 1;
   const char* extra_switches[extra_switches_count] = {
-    switches::kXWalkDisableLoadingExtensionsOnDemand,
     switches::kXWalkDisableExtensionProcess
   };
 
@@ -166,7 +165,8 @@ void XWalkContentBrowserClient::GetAdditionalMappedFilesForChildProcess(
 }
 
 void XWalkContentBrowserClient::ResourceDispatcherHostCreated() {
-  RuntimeResourceDispatcherHostDelegate::ResourceDispatcherHostCreated();
+  RuntimeResourceDispatcherHostDelegateAndroid::
+  ResourceDispatcherHostCreated();
 }
 #endif
 

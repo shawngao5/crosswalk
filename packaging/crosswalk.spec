@@ -1,5 +1,5 @@
 Name:           crosswalk
-Version:        3.32.43.0
+Version:        3.32.48.0
 Release:        0
 Summary:        Crosswalk is an app runtime based on Chromium
 # License:        (BSD-3-Clause and LGPL-2.1+)
@@ -38,7 +38,6 @@ BuildRequires:  pkgconfig(aul)
 BuildRequires:  pkgconfig(audio-session-mgr)
 BuildRequires:  pkgconfig(cairo)
 BuildRequires:  pkgconfig(capi-appfw-application)
-BuildRequires:  pkgconfig(capi-system-device)
 BuildRequires:  pkgconfig(dbus-1)
 BuildRequires:  pkgconfig(fontconfig)
 BuildRequires:  pkgconfig(freetype2)
@@ -123,10 +122,19 @@ export CFLAGS=`echo $CFLAGS | sed s,-fno-omit-frame-pointer,,g`
 # build root to the BUILDDIR_NAME definition, such as "/var/tmp/xwalk-build"
 # (remember all paths are still inside the chroot):
 #    gbs build --define 'BUILDDIR_NAME /some/path'
-# If BUILDDIR_NAME is not set, the default directory, "out", is used.
+#
+# The --depth and --generator-output combo is used to put all the Makefiles
+# inside the build directory, and (this is the important part) keep file lists
+# (generatedwith <|() in gyp) in the build directory as well, otherwise they
+# will be in the source directory, erased every time and trigger an almost full
+# Blink rebuild (among other smaller targets).
+# We cannot always pass those flags, though, because gyp's make generator does
+# not work if the --generator-output is the top-level source directory.
 BUILDDIR_NAME="%{?BUILDDIR_NAME}"
 if [ -z "${BUILDDIR_NAME}" ]; then
-   BUILDDIR_NAME="out"
+   BUILDDIR_NAME="."
+else
+   GYP_EXTRA_FLAGS="--depth=. --generator-output=${BUILDDIR_NAME}"
 fi
 
 # Change src/ so that we can pass "." to --depth below, otherwise we would need
@@ -137,16 +145,10 @@ cd src
 # Use openssl instead of nss, until Tizen gets nss >= 3.14.3
 # --no-parallel is added because chroot does not mount a /dev/shm, this will
 # cause python multiprocessing.SemLock error.
-# The --depth and --generator-output combo is used to put all the Makefiles
-# inside the build directory, and (this is the important part) keep file lists
-# (generatedwith <|() in gyp) in the build directory as well, otherwise they
-# will be in the source directory, erased every time and trigger an almost full
-# Blink rebuild (among other smaller targets).
 export GYP_GENERATORS='make'
 ./xwalk/gyp_xwalk xwalk/xwalk.gyp \
 --no-parallel \
---depth=. \
---generator-output="${BUILDDIR_NAME}" \
+${GYP_EXTRA_FLAGS} \
 -Ddisable_nacl=1 \
 -Dpython_ver=2.7 \
 -Duse_aura=1 \
@@ -163,7 +165,7 @@ export GYP_GENERATORS='make'
 -Dtizen_mobile=1 \
 -Duse_openssl=1
 
-make %{?_smp_mflags} -C "${BUILDDIR_NAME}" BUILDTYPE=Release xwalk
+make %{?_smp_mflags} -C "${BUILDDIR_NAME}" BUILDTYPE=Release xwalk xwalkctl
 
 %install
 # Support building in a non-standard directory, possibly outside %{_builddir}.
@@ -172,10 +174,9 @@ make %{?_smp_mflags} -C "${BUILDDIR_NAME}" BUILDTYPE=Release xwalk
 # build root to the BUILDDIR_NAME definition, such as "/var/tmp/xwalk-build"
 # (remember all paths are still inside the chroot):
 #    gbs build --define 'BUILDDIR_NAME /some/path'
-# If BUILDDIR_NAME is not set, the default directory, "out", is used.
 BUILDDIR_NAME="%{?BUILDDIR_NAME}"
 if [ -z "${BUILDDIR_NAME}" ]; then
-   BUILDDIR_NAME="out"
+   BUILDDIR_NAME="."
 fi
 
 # Since BUILDDIR_NAME can be either a relative path or an absolute one, we need
@@ -188,13 +189,14 @@ cd src
 
 # Binaries.
 install -p -D %{SOURCE1} %{buildroot}%{_bindir}/xwalk
-install -p -D ${BUILDDIR_NAME}/Release/xwalk %{buildroot}%{_libdir}/xwalk/xwalk
+install -p -D ${BUILDDIR_NAME}/out/Release/xwalk %{buildroot}%{_libdir}/xwalk/xwalk
+install -p -D ${BUILDDIR_NAME}/out/Release/xwalkctl %{buildroot}%{_bindir}/xwalkctl
 install -p -D %{SOURCE1004} %{buildroot}%{_bindir}/install_into_pkginfo_db.py
 
 # Supporting libraries and resources.
-install -p -D ${BUILDDIR_NAME}/Release/libffmpegsumo.so %{buildroot}%{_libdir}/xwalk/libffmpegsumo.so
-install -p -D ${BUILDDIR_NAME}/Release/libosmesa.so %{buildroot}%{_libdir}/xwalk/libosmesa.so
-install -p -D ${BUILDDIR_NAME}/Release/xwalk.pak %{buildroot}%{_libdir}/xwalk/xwalk.pak
+install -p -D ${BUILDDIR_NAME}/out/Release/libffmpegsumo.so %{buildroot}%{_libdir}/xwalk/libffmpegsumo.so
+install -p -D ${BUILDDIR_NAME}/out/Release/libosmesa.so %{buildroot}%{_libdir}/xwalk/libosmesa.so
+install -p -D ${BUILDDIR_NAME}/out/Release/xwalk.pak %{buildroot}%{_libdir}/xwalk/xwalk.pak
 
 # Register xwalk to the package manager.
 install -p -D ../%{name}.xml %{buildroot}%{_manifestdir}/%{name}.xml
@@ -204,6 +206,7 @@ install -p -D ../%{name}.png %{buildroot}%{_desktop_icondir}/%{name}.png
 %manifest %{name}.manifest
 # %license AUTHORS.chromium AUTHORS.xwalk LICENSE.chromium LICENSE.xwalk
 %{_bindir}/xwalk
+%{_bindir}/xwalkctl
 %{_bindir}/install_into_pkginfo_db.py
 %{_libdir}/xwalk/libffmpegsumo.so
 %{_libdir}/xwalk/xwalk

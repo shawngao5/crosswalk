@@ -74,7 +74,7 @@
     ],
     'sources': [
       'application/browser/application_event_router_unittest.cc',
-      'application/browser/installer/xpk_extractor_unittest.cc',
+      'application/browser/installer/package_unittest.cc',
       'application/common/application_unittest.cc',
       'application/common/application_file_util_unittest.cc',
       'application/common/id_util_unittest.cc',
@@ -123,6 +123,7 @@
       'application/test/application_apitest.h',
       'application/test/application_browsertest.cc',
       'application/test/application_browsertest.h',
+      'application/test/application_eventapi_test.cc',
       'application/test/application_main_document_browsertest.cc',
       'application/test/application_testapi.cc',
       'application/test/application_testapi.h',

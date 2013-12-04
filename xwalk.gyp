@@ -179,6 +179,9 @@
           'sources': [
             'runtime/app/android/xwalk_main_delegate_android.cc',
             'runtime/app/android/xwalk_main_delegate_android.h',
+            'runtime/browser/android/intercepted_request_data.h',
+            'runtime/browser/android/intercepted_request_data_impl.cc',
+            'runtime/browser/android/intercepted_request_data_impl.h',
             'runtime/browser/android/net/android_protocol_handler.cc',
             'runtime/browser/android/net/android_protocol_handler.h',
             'runtime/browser/android/net/android_stream_reader_url_request_job.cc',
@@ -198,6 +201,9 @@
             'runtime/browser/android/state_serializer.h',
             'runtime/browser/android/xwalk_content.cc',
             'runtime/browser/android/xwalk_content.h',
+            'runtime/browser/android/xwalk_contents_io_thread_client.h',
+            'runtime/browser/android/xwalk_contents_io_thread_client_impl.cc',
+            'runtime/browser/android/xwalk_contents_io_thread_client_impl.h',
             'runtime/browser/android/xwalk_contents_client_bridge.cc',
             'runtime/browser/android/xwalk_contents_client_bridge.h',
             'runtime/browser/android/xwalk_contents_client_bridge_base.cc',
@@ -206,11 +212,19 @@
             'runtime/browser/android/xwalk_dev_tools_server.h',
             'runtime/browser/android/xwalk_download_resource_throttle.cc',
             'runtime/browser/android/xwalk_download_resource_throttle.h',
+            'runtime/browser/android/xwalk_http_auth_handler.cc',
+            'runtime/browser/android/xwalk_http_auth_handler.h',
+            'runtime/browser/android/xwalk_http_auth_handler_base.cc',
+            'runtime/browser/android/xwalk_http_auth_handler_base.h',
+            'runtime/browser/android/xwalk_login_delegate.cc',
+            'runtime/browser/android/xwalk_login_delegate.h',
             'runtime/browser/android/xwalk_settings.cc',
             'runtime/browser/android/xwalk_web_contents_delegate.cc',
             'runtime/browser/android/xwalk_web_contents_delegate.h',
             'runtime/browser/runtime_resource_dispatcher_host_delegate.cc',
             'runtime/browser/runtime_resource_dispatcher_host_delegate.h',
+            'runtime/browser/runtime_resource_dispatcher_host_delegate_android.cc',
+            'runtime/browser/runtime_resource_dispatcher_host_delegate_android.h',
             'runtime/browser/xwalk_browser_main_parts_android.cc',
             'runtime/browser/xwalk_browser_main_parts_android.h',
             'runtime/common/android/xwalk_hit_test_data.cc',
@@ -229,7 +243,6 @@
           'dependencies':[
             'xwalk_core_jar_jni',
             'xwalk_core_native_jni',
-            'generate_chrome_version', # for devtools frontend url
           ],
         }],
         ['OS=="win" and win_use_allocator_shim==1', {
@@ -323,35 +336,6 @@
           },
           'includes': [ '../build/grit_action.gypi' ],
         },
-      ],
-    },
-    {
-      'target_name': 'generate_chrome_version',
-      'type': 'none',
-      'variables': {
-        'generator_py_path': '<(DEPTH)/chrome/tools/build/version.py',
-        'chrome_version_file': '<(DEPTH)/chrome/VERSION',
-        'input_version_header_file' : '<(DEPTH)/chrome/version.h.in',
-      },
-      'actions': [
-        {
-          'action_name': 'chrome_version',
-          'inputs': [
-            '<(chrome_version_file)',
-            '<(input_version_header_file)',
-          ],
-          'outputs':[
-            '<(SHARED_INTERMEDIATE_DIR)/xwalk/chrome_version.h',
-          ],
-          'action': [
-            'python',
-            '<(generator_py_path)',
-            '-f', '<(chrome_version_file)',
-            '-i', '<(input_version_header_file)',
-            '<@(_outputs)',
-          ],
-          'message': 'Generating chrome version header file: @<(_outputs)',
-        }
       ],
     },
     {

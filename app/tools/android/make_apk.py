@@ -279,6 +279,12 @@ def Execution(options, sanitized_name):
     pak_des_path = os.path.join(sanitized_name, 'assets', 'xwalk.pak')
     shutil.copy(pak_src_path, pak_des_path)
 
+    js_src_dir = os.path.join('native_libs_res', 'jsapi')
+    js_des_dir = os.path.join(sanitized_name, 'assets', 'jsapi')
+    if os.path.exists(js_des_dir):
+      shutil.rmtree(js_des_dir)
+    shutil.copytree(js_src_dir, js_des_dir)
+
     res_ui_java = os.path.join('gen', 'ui_java')
     res_content_java = os.path.join('gen', 'content_java')
     res_xwalk_java = os.path.join('gen', 'xwalk_core_java')
@@ -399,9 +405,11 @@ def Execution(options, sanitized_name):
 
   src_dir = '-DSOURCE_DIR=' + os.path.join(sanitized_name, 'src')
   apk_path = '-DUNSIGNED_APK_PATH=' + os.path.join('out', 'app-unsigned.apk')
-  native_lib_path = '-DNATIVE_LIBS_DIR= '
+  native_lib_path = '-DNATIVE_LIBS_DIR='
   if options.mode == 'embedded':
     native_lib_path += os.path.join('native_libs', 'libs')
+  # A space is needed for Windows.
+  native_lib_path += ' '
   cmd = ['python', 'scripts/gyp/ant.py',
          '-DANDROID_SDK_ROOT=%s' % sdk_root_path,
          '-DANT_TASKS_JAR=%s' % ant_tasks_jar_path,

@@ -10,6 +10,8 @@
 #include "dbus/exported_object.h"
 #include "dbus/message.h"
 #include "xwalk/dbus/xwalk_service_name.h"
+#include "xwalk/application/browser/linux/installed_applications_root.h"
+#include "xwalk/application/browser/linux/running_applications_root.h"
 
 namespace xwalk {
 namespace application {
@@ -27,6 +29,11 @@ ApplicationServiceProviderLinux::~ApplicationServiceProviderLinux() {}
 
 void ApplicationServiceProviderLinux::OnDBusInitialized() {
   VLOG(1) << "D-Bus initialized.";
+
+  installed_apps_.reset(new InstalledApplicationsRoot(
+      dbus_manager_.session_bus(), app_service()));
+  running_apps_.reset(new RunningApplicationsRoot(
+      dbus_manager_.session_bus(), app_service()));
 
   // TODO(cmarcelo): This is just a placeholder to test D-Bus is working, remove
   // once we exported proper objects.

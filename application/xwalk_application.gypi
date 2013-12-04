@@ -33,13 +33,15 @@
         'browser/application_system.h',
         'browser/event_observer.cc',
         'browser/event_observer.h',
-        'browser/installer/xpk_extractor.cc',
-        'browser/installer/xpk_extractor.h',
+        'browser/installer/package.h',
+        'browser/installer/package.cc',
+        'browser/installer/wgt_package.h',
+        'browser/installer/wgt_package.cc',
         'browser/installer/xpk_package.cc',
         'browser/installer/xpk_package.h',
 
-        'common/application.cc',
-        'common/application.h',
+        'common/application_data.cc',
+        'common/application_data.h',
         'common/application_file_util.cc',
         'common/application_file_util.h',
         'common/application_manifest_constants.cc',
@@ -54,6 +56,8 @@
         'common/db_store_constants.h',
         'common/db_store_sqlite_impl.cc',
         'common/db_store_sqlite_impl.h',
+        'common/event_names.cc',
+        'common/event_names.h',
         'common/id_util.cc',
         'common/id_util.h',
         'common/install_warning.h',
@@ -64,8 +68,10 @@
         'common/manifest_handlers/permissions_handler.cc',
         'common/manifest_handlers/permissions_handler.h',
 
-        'extension/application_extension.cc',
-        'extension/application_extension.h',
+        'extension/application_event_extension.cc',
+        'extension/application_event_extension.h',
+        'extension/application_runtime_extension.cc',
+        'extension/application_runtime_extension.h',
 
         'renderer/application_native_module.cc',
         'renderer/application_native_module.h',
@@ -80,6 +86,12 @@
           'sources': [
             'browser/application_service_provider_linux.cc',
             'browser/application_service_provider_linux.h',
+            'browser/linux/installed_application_object.cc',
+            'browser/linux/installed_application_object.h',
+            'browser/linux/installed_applications_root.cc',
+            'browser/linux/installed_applications_root.h',
+            'browser/linux/running_applications_root.cc',
+            'browser/linux/running_applications_root.h',
           ],
         }],
         [ 'tizen_mobile == 1', {
@@ -136,6 +148,18 @@
           },
           'includes': [ '../../build/grit_action.gypi' ],
         },
+      ],
+    },
+    {
+      'target_name': 'xwalk_application_tools',
+      'type': 'none',
+      'defines': ['XWALK_VERSION="<(xwalk_version)"'],
+      'conditions': [
+        ['OS=="linux"', {
+          'dependencies': [
+            'application/tools/linux/xwalk_application_tools.gyp:xwalkctl',
+          ],
+        }],
       ],
     },
   ],

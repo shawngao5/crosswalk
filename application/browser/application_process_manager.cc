@@ -8,6 +8,8 @@
 
 #include "base/stl_util.h"
 #include "net/base/net_util.h"
+#include "xwalk/application/browser/application_event_manager.h"
+#include "xwalk/application/browser/application_system.h"
 #include "xwalk/application/common/application_manifest_constants.h"
 #include "xwalk/application/common/constants.h"
 #include "xwalk/runtime/browser/runtime.h"
@@ -31,7 +33,7 @@ ApplicationProcessManager::~ApplicationProcessManager() {
 
 bool ApplicationProcessManager::LaunchApplication(
         RuntimeContext* runtime_context,
-        const Application* application) {
+        const ApplicationData* application) {
   if (RunMainDocument(application))
     return true;
   // NOTE: For now we allow launching a web app from a local path. This may go
@@ -55,7 +57,7 @@ void ApplicationProcessManager::OnRuntimeRemoved(Runtime* runtime) {
 }
 
 bool ApplicationProcessManager::RunMainDocument(
-    const Application* application) {
+    const ApplicationData* application) {
   const Manifest* manifest = application->GetManifest();
   const base::DictionaryValue* dict = NULL;
   if (!manifest->GetDictionary(application_manifest_keys::kAppMainKey, &dict))
@@ -84,6 +86,10 @@ bool ApplicationProcessManager::RunMainDocument(
   }
 
   main_runtime_ = Runtime::Create(runtime_context_, url);
+  ApplicationEventManager* event_manager =
+      runtime_context_->GetApplicationSystem()->event_manager();
+  event_manager->OnMainDocumentCreated(
+      application->ID(), main_runtime_->web_contents());
   return true;
 }
 
@@ -94,7 +100,7 @@ void ApplicationProcessManager::CloseMainDocument() {
 }
 
 bool ApplicationProcessManager::RunFromLocalPath(
-    const Application* application) {
+    const ApplicationData* application) {
   const Manifest* manifest = application->GetManifest();
   std::string entry_page;
   if (manifest->GetString(application_manifest_keys::kLaunchLocalPathKey,

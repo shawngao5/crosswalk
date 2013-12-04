@@ -94,7 +94,10 @@
       },
       'sources': [
         'runtime/android/java/src/org/xwalk/core/AndroidProtocolHandler.java',
+        'runtime/android/java/src/org/xwalk/core/InterceptedRequestData.java',
+        'runtime/android/java/src/org/xwalk/core/XWalkHttpAuthHandler.java',
         'runtime/android/java/src/org/xwalk/core/XWalkContentsClientBridge.java',
+        'runtime/android/java/src/org/xwalk/core/XWalkContentsIoThreadClient.java',
         'runtime/android/java/src/org/xwalk/core/XWalkContent.java',
         'runtime/android/java/src/org/xwalk/core/XWalkDevToolsServer.java',
         'runtime/android/java/src/org/xwalk/core/XWalkSettings.java',
@@ -178,8 +181,8 @@
           'destination': '<(PRODUCT_DIR)/xwalk_runtime_lib/assets/jsapi',
           'files': [
             'experimental/presentation/presentation_api.js',
-            'sysapps/device_capabilities/device_capabilities_api.js',
-            'sysapps/messaging/messaging_api.js',
+            'runtime/android/java/src/org/xwalk/runtime/extension/api/messaging/messaging_api.js',
+            'runtime/android/java/src/org/xwalk/runtime/extension/api/device_capabilities/device_capabilities_api.js',
           ],
         },
       ],

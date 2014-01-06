@@ -11,8 +11,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;  
 import android.net.Uri; 
+import android.os.Environment;
+import android.util.Base64;
 import android.util.Log; 
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -97,6 +101,19 @@ public class Messaging extends XWalkExtension {
             return "";
         }
     }
+    
+    private String getData(String message) {
+        if (message.isEmpty()) {
+            return "";
+        }
+
+        try {
+            return new JSONObject(message).getString("data");
+        } catch(Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
 
     public Messaging(String jsApiContent, XWalkExtensionContext context) {
         super(NAME, jsApiContent, context);
@@ -128,10 +145,37 @@ public class Messaging extends XWalkExtension {
         }
     }
 
+    public File getAlbumStorageDir(String albumName) {
+        // Get the directory for the user's public pictures directory. 
+        File file = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES), albumName);
+        if (!file.mkdirs()) {
+            Log.e("Messaging", "Directory not created");
+        }
+        return file;
+    }
+    
     @Override
     public String onSyncMessage(int instanceID, String message) {
         if (getCommandString(message).equals("msg_smsServiceId")) {
             return mSmsManager.getServiceIds();
+        } else if (getCommandString(message).equals("msg_testFileWrite")) {
+            Log.e("Messaging", "msg_testFileWrite");
+            //File file = getAlbumStorageDir("test.txt");
+            try {
+	            //FileOutputStream outputStream = new FileOutputStream(file);
+            	FileOutputStream outputStream = new FileOutputStream("/sdcard/test.txt");
+            	//FileOutputStream outputStream = mExtensionContext.getActivity().openFileOutput("test.txt", Context.MODE_PRIVATE);
+            	//Log.e("Messaging", message);
+            	//Log.e("Messaging", getData(message));
+            	byte[] data = Base64.decode(getData(message), Base64.DEFAULT);
+            	String text = new String(data, "UTF-8");
+            	//Log.e("Messaging", text);
+	            outputStream.write(text.getBytes());
+	            outputStream.close();
+            } catch (Exception e) {
+            	e.printStackTrace();
+            }
         }
         return "";
     }

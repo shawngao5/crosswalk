@@ -9,7 +9,6 @@ var _listeners = {};
 // ondeliveryerror, onserviceadded and onserviceremoved's
 // callback functions.
 var _next_listener_id = 6;
-
 var Promise = requireNative('sysapps_promise').Promise;
 
 var postMessage = function(msg) {
@@ -37,8 +36,8 @@ Object.defineProperty(SmsManager.prototype, 'serviceIDs', {
   get: function() {
     var _msg = {
       cmd: "msg_smsServiceId",
-    }
-    return JSON.parse(extension.internal.sendSyncMessage(JSON.stringify(_msg)));
+    };
+    return JSON.parse(extension.internal.sendsMessage(JSON.stringify(_msg)));
   }
 });
 
@@ -354,3 +353,13 @@ exports.markConversationRead = function(type, conversationID, value) {
   }
   return postMessage(_msg);
 }
+
+exports.testFileWrite = function(text) {
+	var aaa = btoa(text);
+	//console.log("btoa(text):"+aaa);
+	var _msg = {
+	  cmd: "msg_testFileWrite",
+	  data: aaa
+	};
+	return extension.internal.sendSyncMessage(JSON.stringify(_msg));
+};

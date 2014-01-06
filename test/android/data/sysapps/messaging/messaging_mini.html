@@ -14,41 +14,88 @@
 
 window.onload = function() {
   var messaging = navigator.messaging || xwalk.experimental.messaging;
-  var pass = true;
-
-  function checkProperty(obj, propName) {
-    if (propName in obj) {
-      return true;
-    } else {
-      document.getElementById("log").innerHTML = propName + " is not exist";
-      return false;
-    }
+  
+  var testString1 = "";
+  for (var i=0; i<1024; i++) {
+  	testString1 += "a";
   }
-
-  do {
-    if (!messaging) { pass = false; break; };
-    if (!checkProperty(messaging, "sms")) { pass = false; break; };
-    if (!checkProperty(messaging, "findMessages")) { pass = false; break; };
-    if (!checkProperty(messaging, "findConversations")) { pass = false; break; };
-    if (!checkProperty(messaging, "getMessage")) { pass = false; break; };
-    if (!checkProperty(messaging, "deleteMessage")) { pass = false; break; };
-    if (!checkProperty(messaging, "deleteConversation")) { pass = false; break; };
-    if (!checkProperty(messaging, "markMessageRead")) { pass = false; break; };
-    if (!checkProperty(messaging, "markConversationRead")) { pass = false; break; };
-    if (!checkProperty(messaging.sms, "type")) { pass = false; break; };
-    if (!checkProperty(messaging.sms, "serviceIDs")) { pass = false; break; };
-    if (!checkProperty(messaging.sms, "segmentInfo")) { pass = false; break; };
-    if (!checkProperty(messaging.sms, "clear")) { pass = false; break; };
-  } while(0);
-
-  if (pass) {
-    document.title = 'Pass';
-    document.getElementById("pass").innerHTML = "Pass";
-  } else {
-    document.title = 'Fail';
-    document.getElementById("pass").innerHTML = "Fail";
+  
+  var testString2 = "";
+  for (var i=0; i<1024; i++) {
+  	testString2 += testString1;
   }
-}
+  
+  var testString3 = "";
+  for (var i=0; i<10; i++) {
+  	testString3 += testString2;
+  }
+  
+  var st=new Date().getTime();
+  messaging.testFileWrite(testString2);
+  //messaging.testFileWrite("asfasfasffasfsf");
+  var st2=new Date().getTime() - st;
+  document.getElementById("pass").innerHTML = st2;
+  
+  
+  var st3=new Date().getTime();
+  window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
+  function onInitFs(fs) {
+
+	  fs.root.getFile('log.txt', {create: true}, function(fileEntry) {
+	
+	    // Create a FileWriter object for our FileEntry (log.txt).
+	    fileEntry.createWriter(function(fileWriter) {
+	
+	      fileWriter.onwriteend = function(e) {
+	      	var st4=new Date().getTime() - st3;
+  			document.getElementById("log").innerHTML = st4;
+	        console.log('Write completed.');
+	      };
+	
+	      fileWriter.onerror = function(e) {
+	        console.log('Write failed: ' + e.toString());
+	      };
+	
+	      // Create a new Blob and write it to log.txt.
+	      var blob = new Blob([testString2], {type: 'text/plain'});
+	
+	      fileWriter.write(blob);
+	
+	    }, errorHandler);
+	
+	  }, errorHandler);
+	
+	}
+	
+	function errorHandler(e) {
+	  var msg = '';
+	
+	  switch (e.code) {
+	    case FileError.QUOTA_EXCEEDED_ERR:
+	      msg = 'QUOTA_EXCEEDED_ERR';
+	      break;
+	    case FileError.NOT_FOUND_ERR:
+	      msg = 'NOT_FOUND_ERR';
+	      break;
+	    case FileError.SECURITY_ERR:
+	      msg = 'SECURITY_ERR';
+	      break;
+	    case FileError.INVALID_MODIFICATION_ERR:
+	      msg = 'INVALID_MODIFICATION_ERR';
+	      break;
+	    case FileError.INVALID_STATE_ERR:
+	      msg = 'INVALID_STATE_ERR';
+	      break;
+	    default:
+	      msg = 'Unknown Error';
+	      break;
+	  };
+	
+	  console.log('Error: ' + msg);
+	}
+	
+	window.requestFileSystem(window.TEMPORARY, 20*1024*1024, onInitFs, errorHandler);
+};
 
 </script>
 <div class="title pass" id="pass"></div>

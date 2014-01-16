@@ -57,6 +57,8 @@
         'raw_socket/tcp_socket.idl',
         'raw_socket/tcp_socket_object.cc',
         'raw_socket/tcp_socket_object.h',
+        'shared_memory/shared_memory_extension.cc',
+        'shared_memory/shared_memory_extension.h',
       ],
       'conditions': [
         ['OS!="android"', {

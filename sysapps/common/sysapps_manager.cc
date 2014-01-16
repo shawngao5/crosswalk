@@ -9,6 +9,7 @@
 #include "xwalk/sysapps/device_capabilities_new/memory_info_provider.h"
 #include "xwalk/sysapps/device_capabilities_new/device_capabilities_extension_new.h"
 #include "xwalk/sysapps/raw_socket/raw_socket_extension.h"
+#include "xwalk/sysapps/shared_memory/shared_memory_extension.h"
 
 namespace xwalk {
 namespace sysapps {
@@ -41,6 +42,8 @@ void SysAppsManager::CreateExtensionsForExtensionThread(
     XWalkExtensionVector* extensions) {
   if (raw_sockets_enabled_)
     extensions->push_back(new RawSocketExtension());
+  //FIXME(shawngao): Add if
+  extensions->push_back(new SharedMemoryExtension());
 }
 
 // static

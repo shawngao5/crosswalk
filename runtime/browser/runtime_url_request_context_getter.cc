@@ -191,7 +191,8 @@ net::URLRequestContext* RuntimeURLRequestContextGetter::GetURLRequestContext() {
     set_protocol = job_factory_impl->SetProtocolHandler(
         xwalk::kAppScheme,
         CreateAppSchemeProtocolHandler().release());
-    DCHECK(set_protocol);
+    //FIXME(shawngao)
+//    DCHECK(set_protocol);
 #endif
 
     // Step 3:

@@ -15,6 +15,7 @@
       <include name="IDR_XWALK_SYSAPPS_DEVICE_CAPABILITIES_API" file="device_capabilities/device_capabilities_api.js" type="BINDATA" />
       <include name="IDR_XWALK_SYSAPPS_DEVICE_CAPABILITIES_NEW_API" file="device_capabilities_new/device_capabilities_api.js" type="BINDATA" />
       <include name="IDR_XWALK_SYSAPPS_RAW_SOCKET_API" file="raw_socket/raw_socket_api.js" type="BINDATA" />
+      <include name="IDR_XWALK_SYSAPPS_SHARED_MEMORY_API" file="shared_memory/shared_memory_api.js" type="BINDATA" />
     </includes>
   </release>
 </grit>

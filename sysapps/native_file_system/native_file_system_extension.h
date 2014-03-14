@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef XWALK_SYSAPPS_DEVICE_CAPABILITIES_DEVICE_CAPABILITIES_EXTENSION_H_
-#define XWALK_SYSAPPS_DEVICE_CAPABILITIES_DEVICE_CAPABILITIES_EXTENSION_H_
+#ifndef XWALK_EXPERIMENTAL_NATIVE_FILE_SYSTEM_NATIVE_FILE_SYSTEM_EXTENSION_H_
+#define XWALK_EXPERIMENTAL_NATIVE_FILE_SYSTEM_NATIVE_FILE_SYSTEM_EXTENSION_H_
 
 #include <string>
 
@@ -11,7 +11,6 @@
 #include "content/public/browser/render_process_host.h"
 #include "xwalk/extensions/browser/xwalk_extension_function_handler.h"
 #include "xwalk/extensions/common/xwalk_extension.h"
-#include "xwalk/sysapps/common/binding_object_store.h"
 
 namespace xwalk {
 namespace sysapps {
@@ -22,36 +21,46 @@ using extensions::XWalkExtensionFunctionHandler;
 using extensions::XWalkExtensionFunctionInfo;
 using extensions::XWalkExtensionInstance;
 
-class DeviceCapabilitiesExtension : public XWalkExtension {
+class NativeFileSystemExtension : public XWalkExtension {
  public:
-  explicit DeviceCapabilitiesExtension(content::RenderProcessHost* host);
-  virtual ~DeviceCapabilitiesExtension();
+  explicit NativeFileSystemExtension(content::RenderProcessHost* host);
+  virtual ~NativeFileSystemExtension();
 
   // XWalkExtension implementation.
   virtual XWalkExtensionInstance* CreateInstance() OVERRIDE;
   content::RenderProcessHost* host_;
 };
 
-class DeviceCapabilitiesInstance : public XWalkExtensionInstance {
+class NativeFileSystemInstance : public XWalkExtensionInstance {
  public:
-  DeviceCapabilitiesInstance(content::RenderProcessHost* host);
+  NativeFileSystemInstance(content::RenderProcessHost* host);
 
   // XWalkExtensionInstance implementation.
   virtual void HandleMessage(scoped_ptr<base::Value> msg) OVERRIDE;
   //virtual void HandleSyncMessage(scoped_ptr<base::Value> msg);
 
  private:
-  void OnDeviceCapabilitiesConstructor(
+  void OnGetIsolatedFileSystem(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   XWalkExtensionFunctionHandler handler_;
-  BindingObjectStore store_;
   content::RenderProcessHost* host_;
 };
 
+class WritableFileChecker
+    : public base::RefCountedThreadSafe<WritableFileChecker> {
+  public:
+    WritableFileChecker(content::RenderProcessHost* host, XWalkExtensionInstance* instance);
+    void DoTask();
+    void RegisterFileSystemsAndSendResponse();
+    content::RenderProcessHost* host_;
 
+    std::string promise_id_;
+    std::string path_;
+    XWalkExtensionInstance* instance_;
+};
 }  // namespace experimental
 }  // namespace sysapps
 }  // namespace xwalk
 
-#endif  // XWALK_SYSAPPS_DEVICE_CAPABILITIES_DEVICE_CAPABILITIES_EXTENSION_H_
+#endif  //XWALK_EXPERIMENTAL_NATIVE_FILE_SYSTEM_NATIVE_FILE_SYSTEM_EXTENSION_H_

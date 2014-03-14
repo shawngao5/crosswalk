@@ -8,6 +8,8 @@
 var internal = requireNative('internal');
 internal.setupInternalExtension(extension);
 
+var file_system_native = requireNative('file_system_natives');
+
 var v8tools = requireNative('v8tools');
 var common = requireNative('sysapps_common');
 common.setupSysAppsCommon(internal, v8tools);
@@ -36,3 +38,23 @@ DeviceCapabilities.prototype = new common.EventTargetPrototype();
 DeviceCapabilities.prototype.constructor = DeviceCapabilities;
 
 exports = new DeviceCapabilities();
+/*exports.testFileSystem = function(path) {
+  if (file_system_native.GetIsolatedFileSystem ) {
+    var fs = file_system_native.GetIsolatedFileSystem(path);
+      if (fs) {
+        console.log("have fs");
+      } else {
+        console.log("no fs");
+      }
+  }
+}*/
+exports.registerFileSystem = function(path) {
+  //extension.internal.sendSyncMessage(path);
+  extension.postMessage(path);
+  //var id = "sdfasfsfsfsdffsfsfasfsf";
+  //var fs = file_system_native.GetIsolatedFileSystem(id);
+}
+exports.testFileSystem = function(id) {
+  var fs = file_system_native.GetIsolatedFileSystem(id);
+  return fs;
+}

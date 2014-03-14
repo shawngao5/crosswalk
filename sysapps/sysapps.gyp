@@ -55,6 +55,8 @@
         'device_capabilities/storage_info_provider.h',
         'device_capabilities/storage_info_provider_android.cc',
         'device_capabilities/storage_info_provider_android.h',
+        'native_file_system/native_file_system_extension.h',
+        'native_file_system/native_file_system_extension.cc',
         'raw_socket/raw_socket.idl',
         'raw_socket/raw_socket_extension.cc',
         'raw_socket/raw_socket_extension.h',

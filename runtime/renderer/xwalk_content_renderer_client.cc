@@ -23,6 +23,8 @@
 #include "xwalk/runtime/renderer/tizen/xwalk_content_renderer_client_tizen.h"
 #endif
 
+
+
 namespace xwalk {
 
 namespace {
@@ -88,6 +90,11 @@ void XWalkContentRendererClient::DidCreateModuleSystem(
   scoped_ptr<extensions::XWalkNativeModule> app_module(
       new application::ApplicationNativeModule());
   module_system->RegisterNativeModule("application", app_module.Pass());
+//  file_system_natives_module_ =  new extensions::FileSystemNatives();
+  scoped_ptr<extensions::XWalkNativeModule> isolated_file_system_module(
+      new extensions::IsolatedFileSystem(module_system->GetV8Context()));
+  module_system->RegisterNativeModule("isolated_file_system",
+      isolated_file_system_module.Pass());
   module_system->RegisterNativeModule("sysapps_common",
       extensions::CreateJSModuleFromResource(IDR_XWALK_SYSAPPS_COMMON_API));
   module_system->RegisterNativeModule("sysapps_promise",

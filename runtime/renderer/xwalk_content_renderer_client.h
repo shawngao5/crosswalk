@@ -10,6 +10,7 @@
 #include "base/platform_file.h"
 #include "content/public/renderer/content_renderer_client.h"
 #include "xwalk/extensions/renderer/xwalk_extension_renderer_controller.h"
+#include "xwalk/runtime/renderer/isolated_file_system.h"
 
 namespace xwalk {
 

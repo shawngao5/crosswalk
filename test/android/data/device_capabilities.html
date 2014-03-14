@@ -42,6 +42,7 @@
     }
 
     window.onload = function() {
+      var internal = requireNative("internal");
       try {
         var system = navigator.system || xwalk.experimental.system;
         system.getCPUInfo()

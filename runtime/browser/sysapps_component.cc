@@ -20,7 +20,7 @@ SysAppsComponent::~SysAppsComponent() {}
 void SysAppsComponent::CreateUIThreadExtensions(
     content::RenderProcessHost* host,
     extensions::XWalkExtensionVector* extensions) {
-  manager_.CreateExtensionsForUIThread(extensions);
+  manager_.CreateExtensionsForUIThread(host, extensions);
 }
 
 void SysAppsComponent::CreateExtensionThreadExtensions(

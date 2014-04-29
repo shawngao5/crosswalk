@@ -6,6 +6,7 @@
 #define XWALK_SYSAPPS_COMMON_SYSAPPS_MANAGER_H_
 
 #include "xwalk/extensions/common/xwalk_extension_vector.h"
+#include "content/public/browser/render_process_host.h"
 
 namespace xwalk {
 namespace sysapps {
@@ -30,7 +31,9 @@ class SysAppsManager {
   void DisableDeviceCapabilities();
   void DisableRawSockets();
 
-  void CreateExtensionsForUIThread(XWalkExtensionVector* extensions);
+  void CreateExtensionsForUIThread(
+      content::RenderProcessHost* host,
+      XWalkExtensionVector* extensions);
   void CreateExtensionsForExtensionThread(XWalkExtensionVector* extensions);
 
   static AVCodecsProvider* GetAVCodecsProvider();

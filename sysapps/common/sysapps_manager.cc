@@ -9,6 +9,7 @@
 #include "xwalk/sysapps/device_capabilities/device_capabilities_extension.h"
 #include "xwalk/sysapps/device_capabilities/display_info_provider.h"
 #include "xwalk/sysapps/device_capabilities/memory_info_provider.h"
+#include "xwalk/sysapps/native_file_system/native_file_system_extension.h"
 #include "xwalk/sysapps/raw_socket/raw_socket_extension.h"
 
 namespace xwalk {
@@ -29,6 +30,7 @@ void SysAppsManager::DisableRawSockets() {
 }
 
 void SysAppsManager::CreateExtensionsForUIThread(
+    content::RenderProcessHost* host,
     XWalkExtensionVector* extensions) {
   // FIXME(tmpsantos): Device Capabilities needs to be in the UI Thread because
   // it uses Chromium's StorageMonitor, which requires that. We can move it back
@@ -36,6 +38,7 @@ void SysAppsManager::CreateExtensionsForUIThread(
   // module on Chromium upstream.
   if (device_capabilities_enabled_)
     extensions->push_back(new experimental::DeviceCapabilitiesExtension());
+  extensions->push_back(new experimental::NativeFileSystemExtension(host));
 }
 
 void SysAppsManager::CreateExtensionsForExtensionThread(
